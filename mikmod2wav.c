@@ -1,13 +1,10 @@
 /* mikmod2wav.c */
 /* MikMod to WAV converter */
 
-#define _GNU_SOURCE
-
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <time.h>
 
 #include <mikmod.h>
 
@@ -79,9 +76,11 @@ int main(int argc, char *argv[])
     module = Player_Load(input_file, 64, 0);
     if (module) {
         printf("-- Module info --\n"
+               "File: %s\n"
                "Title: %s\n"
                "Comment: %s\n"
                "Format: %s\n\n",
+               input_file,
                module->songname,
                module->comment ? module->comment : "",
                module->modtype);
@@ -92,9 +91,10 @@ int main(int argc, char *argv[])
 
         while (Player_Active()) {
             /* we're playing */
-            nanosleep((const struct timespec[]){{0, 10000000L}}, NULL);
             MikMod_Update();
-            printf("\r%8" PRId16 " / %8" PRIu16, module->sngpos, module->patpos);
+            printf("\rpat:%" PRId16 "/%" PRIu16 " pos:%2.2" PRIx16 " time:%" PRIu32 ":%02" PRIu32,
+                   module->sngpos, module->numpos, module->patpos,
+                   (module->sngtime >> 10) / 60, (module->sngtime >> 10) % 60);
             fflush(stdout);
         }
 
